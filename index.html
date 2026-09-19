@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <title>ማክቤል ሱቅ (Allmart E-Commerce)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- setHeader & Navigation -->
+    <header>
+        <h1>ማክቤል ሱቅ (Allmart)</h1>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="text" id="search-input" placeholder="እቃ ይፈልጉ..." onkeyup="handleSearch()" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
+            <button id="theme-btn" onclick="toggleTheme()" style="padding:6px 10px; cursor:pointer;">🌙</button>
+        </div>
+    </header>
+
+    <nav>
+        <button onclick="filterCategory('all')">ሁሉም</button>
+        <button onclick="filterCategory('electronics')">ኤሌክትሮኒክስ</button>
+        <button onclick="filterCategory('clothing')">አልባሳት</button>
+        <button onclick="filterCategory('furniture')">የቤት እቃዎች</button>
+    </nav>
+
+    <!-- የበዓል ስጦታ ማሽከርከሪያ (አድሚኑ ሲፈቅድ ብቻ የሚታይ) -->
+    <div id="holiday-gift-section" style="display:none; background:#ffeb3b; padding:15px; text-align:center; margin:15px; border-radius:8px;">
+        <h3 id="admin-gift-description">🎁 ልዩ የበዓል ስጦታ ማሽከርከሪያ</h3>
+        <div id="spin-result-display" style="font-weight:bold; margin:10px 0; color:#333;">እድልዎን ይሞክሩ!</div>
+        <button onclick="spinHolidayGift()" style="background:#ff9800; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">ስጦታውን አሽከርክር 🎁</button>
+    </div>
+
+    <main style="display:flex; gap:20px; padding:20px;">
+        <!-- ምርቶች የሚታዩበት ክፍል -->
+        <section style="flex:2;">
+            <h2>ምርቶች ዝርዝር</h2>
+            <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:15px;"></div>
+        </section>
+
+        <!-- የግዢ ከረጢት (Cart) እና ክፍያ -->
+        <section style="flex:1; background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h2>የግዢ ከረጢት (Cart)</h2>
+            <div id="cart-items" style="max-height:150px; overflow-y:auto; margin-bottom:10px;">ከረጢቱ ባዶ ነው</div>
+            <hr>
+            
+            <!-- የቅናሽ ኮድ ክፍል (አድሚኑ ሲፈቅድ ብቻ የሚታይ) -->
+            <div id="promo-container" style="display:none; margin:10px 0;">
+                <input type="text" id="promo-input" placeholder="የኩፖን ኮድ (ለምሳሌ MAKI5)" style="padding:5px; width:65%;">
+                <button onclick="applyPromoCode()" style="padding:5px; background:#007bff; color:white; border:none; border-radius:3px; cursor:pointer;">ተግብር</button>
+                <p id="promo-message" style="font-size:12px; margin:5px 0;"></p>
+            </div>
+
+            <div id="cart-total" style="margin:10px 0; font-size:13px; line-height:1.5;"></div>
+
+            <h3>ማስረከቢያ አድራሻ</h3>
+            <select id="customer-location" onchange="updateDeliveryFee()" style="width:100%; padding:6px; margin-bottom:10px;">
+                <option value="" data-fee="0">አድራሻ ይምረጡ</option>
+                <option value="አዲስ አበባ" data-fee="100">አዲስ አበባ (100 ብር)</option>
+                <option value="አዋሳ" data-fee="150">አዋሳ (150 ብር)</option>
+                <option value="ጎንደር" data-fee="200">ጎንደር (200 ብር)</option>
+            </select>
+
+            <h3>የክፍያ መንገድ</h3>
+            <select id="payment-method" onchange="showPaymentDetails()" style="width:100%; padding:6px; margin-bottom:10px;">
+                <option value="">የክፍያ መንገድ ይምረጡ</option>
+                <option value="Telebirr">ቴሌብር</option>
+                <option value="CBE">ንግድ ባንክ (CBE)</option>
+                <option value="Abyssinia">አቢሲኒያ ባንክ</option>
+                <option value="Dashen">ዳሽን ባንክ</option>
+                <option value="COD">እቃው ሲደርስ (Cash on Delivery)</option>
+            </select>
+
+            <div id="payment-info-box" style="display:none; background:#e2e3e5; padding:8px; font-size:12px; margin-bottom:10px; border-radius:4px;"></div>
+
+            <input type="text" id="customer-name" placeholder="ሙሉ ስም" style="width:100%; padding:6px; margin-bottom:5px; box-sizing:border-box;">
+            <input type="text" id="customer-phone" placeholder="ስልክ ቁጥር" style="width:100%; padding:6px; margin-bottom:5px; box-sizing:border-box;">
+            <input type="text" id="transaction-id" placeholder="Transaction ID (የክፍያ ማረጋገጫ)" style="width:100%; padding:6px; margin-bottom:10px; box-sizing:border-box;">
+
+            <button onclick="checkout(event)" style="background:#28a745; color:white; border:none; width:100%; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;">ትዕዛዝ ላክ 🛒</button>
+        </section>
+    </main>
+
+    <!-- የአስተዳዳሪ ሞዳል (Admin Panel) -->
+    <div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000;">
+        <div style="background:white; padding:20px; width:450px; max-height:90vh; overflow-y:auto; border-radius:8px;">
+            <h2>⚙️ አስተዳዳሪ መቆጣጠሪያ (Admin Panel)</h2>
+            <button onclick="closeAdminPanel()" style="float:right; background:red; color:white; border:none; padding:4px 8px; cursor:pointer; border-radius:3px;">X</button>
+            <hr style="clear:both; margin:10px 0;">
+
+            <h3>አስተዳዳሪ ቅንብሮች</h3>
+            <label><input type="checkbox" onchange="toggleAdminDiscount(this)"> ቅናሾች እና ኩፖኖች (Promos) ፍቀድ</label><br>
+            <label style="margin-top:5px; display:inline-block;"><input type="checkbox" onchange="toggleAdminGift(this)"> የበዓል ስጦታ ማሽከርከሪያ ፍቀድ</label>
+            <div style="margin-top:8px; display:flex; gap:5px;">
+                <input type="text" id="admin-gift-text-input" placeholder="አዲስ የስጦታ ማስታወቂያ ጽሁፍ" style="flex:1; padding:5px;">
+                <button onclick="saveAdminGiftSettings()" style="padding:5px; background:#17a2b8; color:white; border:none; border-radius:3px; cursor:pointer;">አስተካክል</button>
+            </div>
+
+            <h3 style="margin-top:15px;">አዲስ እቃ ለመጨመር</h3>
+            <input type="text" id="admin-product-name" placeholder="የእቃው ስም" style="width:100%; padding:6px; margin-bottom:5px; box-sizing:border-box;">
+            <input type="number" id="admin-product-price" placeholder="ዋጋ (ብር)" style="width:100%; padding:6px; margin-bottom:5px; box-sizing:border-box;">
+            <select id="admin-product-category" style="width:100%; padding:6px; margin-bottom:5px;">
+                <option value="electronics">ኤሌክትሮኒክስ</option>
+                <option value="clothing">አልባሳት</option>
+                <option value="furniture">የቤት እቃዎች</option>
+            </select>
+            <input type="text" id="admin-product-image" placeholder="የፎቶ ሊንክ (URL) - አማራጭ" style="width:100%; padding:6px; margin-bottom:10px; box-sizing:border-box;">
+            <button onclick="adminAddProduct()" style="background:#007bff; color:white; border:none; width:100%; padding:8px; cursor:pointer; border-radius:4px; font-weight:bold;">እቃ ጨምር</button>
+
+            <h3 style="margin-top:15px;">የዕቃዎች ዝርዝር (ዋጋ ማስተካከያ እና መሰረዣ)</h3>
+            <div id="admin-product-management-list" style="max-height:180px; overflow-y:auto; border:1px solid #ccc; padding:5px; border-radius:4px;"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
